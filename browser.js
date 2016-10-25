@@ -19,6 +19,9 @@ exports.storage = require('./src/storage');
 exports.ui = require('./src/ui');
 exports.util = util;
 
+exports.login = require('./src/d-login');
+exports.uri = require('./src/d-uri');
+
 // Ext namespace (for core-provided extension modules)
 exports.ext = {};
 

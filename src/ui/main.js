@@ -88,6 +88,9 @@ function injectDynamicStyle() {
         "}",
         ".annotator-filter {",
         "  z-index: " + (max + 10) + ";",
+        "}",
+        ".annotator-login {",
+        "  z-index: " + (max + 15) + ";",
         "}"
     ].join("\n");
 

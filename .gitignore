@@ -3,3 +3,5 @@
 doc/_build/
 node_modules/
 pkg/
+
+.idea

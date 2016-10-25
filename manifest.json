@@ -14,11 +14,11 @@
       "matches": ["<all_urls>"],
       "js": [
         "lib/vendor/jquery.js",
-        "pkg/annotator-full.min.js",
+        "pkg/annotator.min.js",
         "contrib/chrome/content.js"
       ],
       "css": [
-        "pkg/annotator.min.css"
+        "css/annotator.css"
       ]
     }
   ],

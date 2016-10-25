@@ -11,6 +11,7 @@
     "clean-css": "^3.4.4",
     "enhance-css": "^1.1.0",
     "es6-promise": "^3.0.2",
+    "firebase": "^3.5.2",
     "insert-css": "^0.2.0",
     "jquery": "^1.11.3",
     "xpath-range": "0.0.5"

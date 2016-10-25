@@ -63,8 +63,8 @@ var Filter = exports.Filter = function Filter(options) {
 // Returns nothing.
 Filter.prototype.destroy = function () {
     var html = $('html'),
-        currentMargin = parseInt(html.css('padding-top'), 10) || 0;
-    html.css('padding-top', currentMargin - this.element.outerHeight());
+        currentMargin = parseInt(html.css('padding-bottom'), 10) || 0;
+    html.css('padding-bottom', currentMargin - this.element.outerHeight());
     this.element.off("." + NS);
     this.element.remove();
 };
@@ -75,8 +75,8 @@ Filter.prototype.destroy = function () {
 // Returns itself
 Filter.prototype._insertSpacer = function () {
     var html = $('html'),
-        currentMargin = parseInt(html.css('padding-top'), 10) || 0;
-    html.css('padding-top', currentMargin + this.element.outerHeight());
+        currentMargin = parseInt(html.css('padding-bottom'), 10) || 0;
+    html.css('padding-bottom', currentMargin + this.element.outerHeight());
     return this;
 };
 

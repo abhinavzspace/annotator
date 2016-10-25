@@ -120,8 +120,13 @@
               "package by running `make`");
       } else {
         var app = new annotator.App();
-        app.include(annotator.ui.main);
-        app.start();
+        app.include(annotator.ui.main, {
+          viewerExtensions: [annotator.ui.tags.viewerExtension],
+          editorExtensions: [annotator.ui.tags.editorExtension]
+        })
+                .include(annotator.ui.filter.standalone)
+                .include(annotator.storage.debug)
+                .start();
       }
     </script>
   </body>

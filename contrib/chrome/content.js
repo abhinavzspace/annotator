@@ -5,15 +5,21 @@
  * handled here.
  */
 chrome.extension.onRequest.addListener(
-  function (request, sender, sendResponse) {
-    var command = request.annotator
-    if (command) {
-      if (command === 'load') {
-        $(document.body).annotator().annotator('setupPlugins')
-        sendResponse({ok: true})
-      } else {
-        sendResponse({error: new TypeError("not implemented: " + command)})
-      }
+    function (request, sender, sendResponse) {
+        var command = request.annotator
+        if (command) {
+            if (command === 'load') {
+                // $(document.body).annotator().annotator('setupPlugins')
+                var elem = document.body;
+                var app = new annotator.App()
+                    .include(annotator.ui.main, {element: elem})
+                    .include(annotator.ui.filter.standalone)
+                    .include(annotator.storage.debug)
+                    .start()
+                sendResponse({ok: true})
+            } else {
+                sendResponse({error: new TypeError("not implemented: " + command)})
+            }
+        }
     }
-  }
 )
