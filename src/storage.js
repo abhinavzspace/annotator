@@ -7,8 +7,9 @@ var $ = util.$;
 var _t = util.gettext;
 var Promise = util.Promise;
 
-var store = require('./local-store').store;
-var USERDATA = 'userdata';
+// var store = require('./local-store').store;
+var auth = require('./firebaseApp').auth
+var USERDATA = 'auth';
 
 // id returns an identifier unique within this session
 var id = (function () {
@@ -278,6 +279,21 @@ HttpStorage.prototype._apiRequest = function (action, obj) {
     });
 };
 
+// DEPRECATED
+/*HttpStorage.prototype._apiRequest = function (action, obj) {
+    var id = obj && obj.id;
+    var url = this._urlFor(action, id);
+    var options = this._apiRequestOptions(action, obj);
+
+    var request = $.ajax(url, options);
+
+    // Append the id and action to the request object
+    // for use in the error callback.
+    request._id = id;
+    request._action = action;
+    return request;
+};*/
+
 /*
  * Builds an options object suitable for use in a jQuery.ajax() call.
  *
@@ -299,11 +315,10 @@ HttpStorage.prototype._apiRequestOptions = function (action, obj) {
     };
 
     // START: By Abhinav, 24Aug2016
-    return store.get(USERDATA).then(function (userdata) {
-        if (typeof  userdata !== 'undefined' && userdata !== null) {
-            var token = JSON.parse(userdata).token;
+    return auth.currentUser.getToken().then(function (idToken) {
+        if (idToken) {
             opts.beforeSend = function(xhr) {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + idToken);
             };
         }
         return opts;
@@ -345,6 +360,53 @@ HttpStorage.prototype._apiRequestOptions = function (action, obj) {
 
     });
     // END
+};
+
+// DEPRECATED
+HttpStorage.prototype._apiRequestOptions_DEPRECATED = function (action, obj) {
+    var method = this._methodFor(action);
+    var self = this;
+
+    var opts = {
+        type: method,
+        dataType: "json",
+        error: function () { self._onError.apply(self, arguments); },
+        headers: this.options.headers
+    };
+
+    // If emulateHTTP is enabled, we send a POST and put the real method in an
+    // HTTP request header.
+    if (this.options.emulateHTTP && (method === 'PUT' || method === 'DELETE')) {
+        opts.headers = $.extend(opts.headers, {
+            'X-HTTP-Method-Override': method
+        });
+        opts.type = 'POST';
+    }
+
+    // Don't JSONify obj if making search request.
+    if (action === "search") {
+        opts = $.extend(opts, {data: obj});
+        return opts;
+    }
+
+    var data = obj && JSON.stringify(obj);
+
+    // If emulateJSON is enabled, we send a form request (the correct
+    // contentType will be set automatically by jQuery), and put the
+    // JSON-encoded payload in the "json" key.
+    if (this.options.emulateJSON) {
+        opts.data = {json: data};
+        if (this.options.emulateHTTP) {
+            opts.data._method = method;
+        }
+        return opts;
+    }
+
+    opts = $.extend(opts, {
+        data: data,
+        contentType: "application/json; charset=utf-8"
+    });
+    return opts;
 };
 
 /*

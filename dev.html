@@ -136,6 +136,17 @@
         app.annotations.load('uri=' + uri);
     }
 
+    function setIdentity() {
+        var ident = app.registry.getUtility('identityPolicy');
+        var login = app.registry.getUtility('login');
+        ident.setIdentity(login.getCurrentUser())
+    }
+
+    function onLoginDo() {
+        loadAnnotations();
+        setIdentity();
+    }
+
     app
             .include(annotator.ui.main, {
                 element: elem //,
@@ -145,19 +156,17 @@
             .include(annotator.ui.filter.standalone)
             //            .include(annotator.storage.debug)
             .include(annotator.storage.http, {
-                prefix: 'https://localhost:7777/api'
+                prefix: 'https://abhinav-ann.ap.ngrok.io/api'
             })
             .include(annotator.login.login, {
-                onLogin: loadAnnotations,
-                urlPrefix: 'https://localhost:7777'
+                onLogin: onLoginDo,
+                urlPrefix: 'https://abhinav-ann.ap.ngrok.io'
             })
             .include(annotator.uri.uri)
             .start()
             .then(function () {
                 var login = app.registry.getUtility('login');
-                login.isLoggedIn().then(function(isLoggedIn) {
-                    if (isLoggedIn) loadAnnotations();
-                });
+                if (login.isLoggedIn()) onLoginDo();
             });
 </script>
 </body>

@@ -25,19 +25,6 @@ exports.simple = function simple() {
     };
 };
 
-// exports.simple = function simple() {
-//     var identity = new SimpleIdentityPolicy();
-//
-//     return {
-//         configure: function (registry) {
-//             registry.registerUtility(identity, 'identityPolicy');
-//         },
-//         beforeAnnotationCreated: function (annotation) {
-//             annotation.user = identity.who();
-//         }
-//     };
-// };
-
 
 /**
  * class:: SimpleIdentityPolicy
@@ -70,8 +57,3 @@ exports.SimpleIdentityPolicy = SimpleIdentityPolicy;
 SimpleIdentityPolicy.prototype.who = function () {
     return this.identity;
 };
-
-
-SimpleIdentityPolicy.prototype.setIdentity = function (identity) {
-    this.identity = identity;
-}

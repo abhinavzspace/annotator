@@ -5,6 +5,7 @@
 "use strict";
 
 var util = require('./util');
+var auth = require('./firebaseApp').auth
 
 var $ = util.$;
 var _t = util.gettext;
@@ -13,7 +14,8 @@ var store = require('./local-store').store;
 
 var NS = 'annotator-login';
 
-var USERDATA = 'userdata';
+var USERDATA = 'auth';
+
 
 // Public: Creates a new instance of the Login.
 //
@@ -25,10 +27,20 @@ var Login = exports.Login = function Login(options) {
     this.classes = $.extend(true, {}, Login.classes);
     this.element = $(Login.html.element).appendTo(this.options.appendTo);
 
-    self = this;
-    this._getUserData().then(function (userdata) {
-        if (userdata !== null) {
+
+    // this._getUserData().then(function (authData) {
+    //     if (authData && authData.uid && authData.email && authData.token) {
+    //         self._showLogout();
+    //     } else {
+    //         self._showLoginContainer();
+    //     }
+    // });
+
+    var self = this;
+    auth.onAuthStateChanged(function (authData) {
+        if (authData) {
             self._showLogout();
+            self.options.onLogin();
         } else {
             self._showLoginContainer();
         }
@@ -77,22 +89,26 @@ Login.prototype._doLogin = function (event) {
     var email = this.element.find('.annotator-login-container input[type=email]').val();
     var password = this.element.find('.annotator-login-container input[type=password]').val();
 
-    var obj = {
-        "username": username,
-        "email": email,
-        "password": password
-    };
-
-    var req = this._apiRequest('/login', 'post', obj);
-    var self = this;
-    console.log('req login', req);
-    req.then(function (data) {
-        console.log('login: ', data);
-        self._setUserData(data).then(function () {
-            self._showLogout();
-            self.options.onLogin();
-        });
-    });
+    // auth.onAuthStateChanged() will take care of changing UI
+    auth.signInWithEmailAndPassword(email, password).catch(function (err) {
+        // TODO: handle error
+    })
+    // var obj = {
+    //     "username": username,
+    //     "email": email,
+    //     "password": password
+    // };
+    //
+    // var req = this._apiRequest('/login', 'post', obj);
+    // var self = this;
+    // console.log('req login', req);
+    // req.then(function (data) {
+    //     console.log('login: ', data);
+    //     self._setUserData(data).then(function () {
+    //         self._showLogout();
+    //         self.options.onLogin();
+    //     });
+    // });
 };
 
 Login.prototype._doSignup = function (event) {
@@ -120,31 +136,37 @@ Login.prototype._doSignup = function (event) {
 
 
 Login.prototype._doLogout = function (event) {
-    var req = this._apiRequest('/logout', 'get');
     var self = this;
-    console.log('req logout', req);
-    req.then(function (data) {
-        console.log('logout: ', data);
-        self._removeUserData(data).then(function () {
-            self._showLoginContainer();
-        });
+    auth.signOut().then(function () {
+        // auth.onAuthStateChanged() will take care of changing UI
+    }, function (err) {
+        console.log('signOut err', err)
+        // TODO: handle error
     });
+
+    // var req = this._apiRequest('/logout', 'get');
+    // var self = this;
+    // console.log('req logout', req);
+    // req.then(function (data) {
+    //     console.log('logout: ', data);
+    //     self._removeUserData(data).then(function () {
+    //         self._showLoginContainer();
+    //     });
+    // });
 }
 
-
+// DEPRECATED
 Login.prototype._setUserData = function (data) {
-    var dataString = JSON.stringify({
-        token: data.token,
-        user: data.user
-    });
+    var dataString = JSON.stringify(data);
     return store.set(USERDATA, dataString);
 };
 
-
+// DEPRECATED
 Login.prototype._removeUserData = function () {
     return store.remove(USERDATA);
 };
 
+// DEPRECATED
 Login.prototype._getUserData = function () {
     return store.get(USERDATA).then(function (userdata) {
         if (typeof  userdata !== 'undefined' && userdata !== null) {
@@ -154,6 +176,7 @@ Login.prototype._getUserData = function () {
     });
 };
 
+// DEPRECATED
 Login.prototype._getToken = function () {
     return this._getUserData().then(function (userdata) {
         if (userdata && userdata.token) {
@@ -170,7 +193,7 @@ Login.prototype._showLogout = function () {
     this.element.find('.annotator-logout').show();
 };
 
-
+// DEPRECATED
 Login.prototype._apiRequest = function (action, type, obj) {
     var data = ( obj && JSON.stringify(obj) ) || '';
     var dataType = type === 'get' ? 'text' : 'json';
@@ -207,16 +230,26 @@ Login.prototype._apiRequest = function (action, type, obj) {
     return p;
 }
 
+
 Login.prototype.isLoggedIn = function () {
-    return this._getUserData().then(function (userdata) {
-        if (userdata !== null && typeof userdata.token !== 'undefined') {
-            return true;
-        }
-        return false;
-    });
+    return auth.currentUser ? true : false;
 }
 
+// DEPRECATED
+// Login.prototype.isLoggedIn = function () {
+//     return this._getUserData().then(function (userdata) {
+//         if (userdata !== null && typeof userdata.token !== 'undefined') {
+//             return true;
+//         }
+//         return false;
+//     });
+// }
 
+Login.prototype.getCurrentUser = function () {
+    return auth.currentUser && auth.currentUser.uid;
+}
+
+// DEPRECATED
 //FIXME: change error messages
 Login.prototype._onError = function (xhr) {
     var message;
@@ -325,6 +358,9 @@ exports.login = function (options) {
         },
         isLoggedIn: function () {
             return widget.isLoggedIn();
+        },
+        getCurrentUser: function () {
+            return widget.getCurrentUser();
         }
     };
 };
